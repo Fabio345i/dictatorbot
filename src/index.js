@@ -30,5 +30,5 @@ for (const file of fs.readdirSync(eventsPath)) {
   if (event.once) client.once(event.name, (...args) => event.execute(...args));
   else client.on(event.name, (...args) => event.execute(...args));
 }
-
+console.log("Has TOKEN ?", process.env.TOKEN ? "YES" : "NO");
 client.login(process.env.TOKEN);
