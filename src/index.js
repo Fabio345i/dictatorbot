@@ -30,5 +30,22 @@ for (const file of fs.readdirSync(eventsPath)) {
   if (event.once) client.once(event.name, (...args) => event.execute(...args));
   else client.on(event.name, (...args) => event.execute(...args));
 }
-console.log("Has TOKEN ?", process.env.TOKEN ? "YES" : "NO");
+
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = client.commands.get(interaction.commandName);
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({
+      content: "Erreur lors de l'exécution de la commande.",
+      ephemeral: true,
+    });
+  }
+});
+
 client.login(process.env.TOKEN);
