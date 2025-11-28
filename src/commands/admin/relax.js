@@ -46,7 +46,7 @@ module.exports = {
     if (!relaxChannel) {
       relaxChannel = await guild.channels.create({
         name: "bad kitten",
-        type: 2, // voice
+        type: 2,
         permissionOverwrites: [
           {
             id: guild.roles.everyone.id,
@@ -56,7 +56,7 @@ module.exports = {
       });
     }
 
-    for (const channel of guild.channels.cache.filter((c) =>
+    for (const [, channel] of guild.channels.cache.filter((c) =>
       c.isVoiceBased()
     )) {
       await channel.permissionOverwrites
@@ -89,15 +89,30 @@ module.exports = {
       try {
         await target.voice.setMute(false).catch(() => {});
         await connection.destroy();
-        for (const channel of guild.channels.cache.filter((c) =>
+        for (const [, channel] of guild.channels.cache.filter((c) =>
           c.isVoiceBased()
         )) {
           await channel.permissionOverwrites.delete(target.id).catch(() => {});
         }
-        await interaction.followUp({
-          content: `${target.user.username} is now free from the *bad kitten* chamber 😌`,
-          ephemeral: false,
-        });
+        const generalChannel =
+          guild.channels.cache.find(
+            (c) =>
+              c.isVoiceBased() &&
+              ["general", "général"].includes(c.name.toLowerCase())
+          ) || null;
+
+        if (generalChannel) {
+          await target.voice.setChannel(generalChannel).catch(() => {});
+          await interaction.followUp({
+            content: `${target.user.username} is now free and has returned to ${generalChannel.name} 😌`,
+            ephemeral: false,
+          });
+        } else {
+          await interaction.followUp({
+            content: `${target.user.username} is now free from the *bad kitten* chamber 😌 (no general channel found)`,
+            ephemeral: false,
+          });
+        }
       } catch (err) {
         console.error("Error releasing user:", err);
       }
